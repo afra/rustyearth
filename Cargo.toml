@@ -1,0 +1,7 @@
+[package]
+name = "rustyearth"
+version = "0.1.0"
+authors = ["Alexander Couzens <lynxis@fe80.eu>"]
+
+[dependencies.iron]
+version = "*"
