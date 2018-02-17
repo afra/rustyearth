@@ -36,6 +36,10 @@ impl SpaceIron {
     fn get(&self, request: &mut Request) -> IronResult<Response> {
         match request.url.path()[0] {
             "" => self.index(request),
+            "status.json" => {
+                let status = &self.space.lock().unwrap().status;
+                self.status_json(status)
+            },
             "status" => {
                 let status = self.space.lock().unwrap().status.status;
                 Ok(Response::with((status::Ok, format!("Status {}", status))))
@@ -50,6 +54,43 @@ impl SpaceIron {
 
     fn index(&self, _: &mut Request) -> IronResult<Response> {
         Ok(Response::with((status::Ok, "Index")))
+    }
+
+    fn status_json(&self, status: &SpaceStatus) -> IronResult<Response> {
+        let base = r##"{
+                        "api": "0.13",
+                        "space": "AFRA",
+                        "logo": "https://afra-berlin.de/dokuwiki/lib/exe/fetch.php?t=1426288945&w=128&h=128&tok=561205&media=afra-logo.png",
+                        "url": "https://afra-berlin.de",
+                        "location": {
+                            "address": "Margaretenstr. 30, 10317 Berlin, Germany",
+                            "lon": 13.4961541,
+                            "lat": 52.5082224
+                        },
+                        "contact": {
+                            "twitter": "@afra_berlin",
+                            "irc": "irc://irc.freenode.net/#afra",
+                            "email": "info@afra-berlin.de",
+                            "ml": "afra@afra-berlin.de",
+                            "issue_mail": "info@afra-berlin.de"
+                        },
+                        "issue_report_channels": [
+                            "issue_mail"
+                        ],
+                        "state": {
+                            "open": {}
+                        },
+                        "open": {}
+                    }"##;
+        let result = match status.status {
+            true => base.replace("{}", "true"),
+            false => base.replace("{}", "false"),
+        };
+
+        let mut resp = Response::with((status::Ok, result));
+        resp.headers.set(CacheControl(vec![CacheDirective::MaxAge(86400u32)]));
+        resp.headers.set(ContentType("text/json".parse().unwrap()));
+        Ok(resp)
     }
 
     fn status_png(&self, status: &SpaceStatus) -> IronResult<Response> {
