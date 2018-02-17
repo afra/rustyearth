@@ -37,8 +37,8 @@ impl SpaceIron {
         match request.url.path()[0] {
             "" => self.index(request),
             "status" => {
-                    let status = self.space.lock().unwrap().status.status;
-                    Ok(Response::with((status::NotFound, format!("Status {}", status))))
+                let status = self.space.lock().unwrap().status.status;
+                Ok(Response::with((status::Ok, format!("Status {}", status))))
             },
             "status.png" => {
                 let status = &self.space.lock().unwrap().status;
