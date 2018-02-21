@@ -53,6 +53,7 @@ impl SpaceIron {
     }
 
     fn index(&self, _: &mut Request) -> IronResult<Response> {
+        /* TODO: add a readme here and links to valid endpoints */
         Ok(Response::with((status::Ok, "Index")))
     }
 
