@@ -16,8 +16,6 @@ pub struct SpaceStatus {
 }
 
 pub struct SpaceApi {
-    pub space: String,
-    pub location: String,
     pub status: SpaceStatus,
 }
 
@@ -153,8 +151,6 @@ impl Handler for SpaceIron {
 
 fn main() {
     let space = SpaceApi {
-        space: String::from("Abteilung für Redundanz Abteilung"),
-        location: String::from("Mar 30, 10317 Berlin"),
         status: SpaceStatus {
             status: false,
             open: String::from("assets/open.png"),
