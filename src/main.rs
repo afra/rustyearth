@@ -19,13 +19,13 @@ pub struct SpaceApi {
     pub status: SpaceStatus,
 }
 
-impl SpaceApi {
+impl SpaceStatus {
     /* call when authorized by the token */
     fn open(&mut self) {
-        self.status.status = true;
+        self.status = true;
     }
     fn close(&mut self) {
-        self.status.status = false;
+        self.status = false;
     }
 }
 
@@ -121,11 +121,11 @@ impl SpaceIron {
         } else {
             match request.url.path()[2] {
                 "0" => {
-                    self.space.lock().unwrap().close();
+                    self.space.lock().unwrap().status.close();
                     Ok(Response::with((status::Ok, "closed")))
                 },
                 "1" => {
-                    self.space.lock().unwrap().open();
+                    self.space.lock().unwrap().status.open();
                     Ok(Response::with((status::Ok, "open")))
                 },
                 _ => Ok(Response::with((status::NotFound, "Not Found"))),
