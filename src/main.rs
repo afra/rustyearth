@@ -87,7 +87,7 @@ impl SpaceIron {
         };
 
         let mut resp = Response::with((status::Ok, result));
-        resp.headers.set(CacheControl(vec![CacheDirective::MaxAge(86400u32)]));
+        resp.headers.set(CacheControl(vec![CacheDirective::MaxAge(60u32)]));
         resp.headers.set(ContentType("text/json".parse().unwrap()));
         Ok(resp)
     }
@@ -99,7 +99,7 @@ impl SpaceIron {
         };
         
         let mut resp = Response::with((status::Ok, File::open(file).unwrap()));
-        resp.headers.set(CacheControl(vec![CacheDirective::MaxAge(86400u32)]));
+        resp.headers.set(CacheControl(vec![CacheDirective::MaxAge(60u32)]));
         resp.headers.set(ContentType("image/png".parse().unwrap()));
         Ok(resp)
     }
