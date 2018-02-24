@@ -1,4 +1,5 @@
 extern crate iron;
+extern crate time;
 
 use std::sync::{Mutex, Arc};
 use std::fs::File;
@@ -6,13 +7,14 @@ use std::fs::File;
 use iron::method::Method;
 use iron::middleware::Handler;
 use iron::prelude::*;
-use iron::headers::{CacheControl, CacheDirective, ContentType};
+use iron::headers::{CacheControl, CacheDirective, ContentType, HttpDate, LastModified};
 use iron::status;
 
 pub struct SpaceStatus {
     pub status: bool,
     pub open: String,
     pub close: String,
+    pub modified: HttpDate,
 }
 
 pub struct SpaceApi {
@@ -23,9 +25,11 @@ impl SpaceStatus {
     /* call when authorized by the token */
     fn open(&mut self) {
         self.status = true;
+        self.modified = HttpDate(time::now());
     }
     fn close(&mut self) {
         self.status = false;
+        self.modified = HttpDate(time::now());
     }
 }
 
@@ -88,6 +92,7 @@ impl SpaceIron {
 
         let mut resp = Response::with((status::Ok, result));
         resp.headers.set(CacheControl(vec![CacheDirective::MaxAge(60u32)]));
+        resp.headers.set(LastModified(status.modified));
         resp.headers.set(ContentType("text/json".parse().unwrap()));
         Ok(resp)
     }
@@ -100,6 +105,7 @@ impl SpaceIron {
         
         let mut resp = Response::with((status::Ok, File::open(file).unwrap()));
         resp.headers.set(CacheControl(vec![CacheDirective::MaxAge(60u32)]));
+        resp.headers.set(LastModified(status.modified));
         resp.headers.set(ContentType("image/png".parse().unwrap()));
         Ok(resp)
     }
@@ -155,6 +161,8 @@ fn main() {
             status: false,
             open: String::from("assets/open.png"),
             close: String::from("assets/close.png"),
+            // founding date of AfRA
+            modified: HttpDate(time::strptime("29.07.2013 18:03:00 GMT", "%d.%m.%Y %H:%M:%S %Z").unwrap()),
         },
     };
     let space_mutexed = std::sync::Arc::new(std::sync::Mutex::new(space));
