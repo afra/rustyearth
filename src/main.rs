@@ -36,6 +36,7 @@ impl SpaceStatus {
 impl SpaceIron {
     /* implement all Get requests */
     fn get(&self, request: &mut Request) -> IronResult<Response> {
+         /* e.g. path: /v1/status.json */
         match request.url.path()[1] {
             "" => self.index(request),
             "status.json" => {
@@ -114,6 +115,8 @@ impl SpaceIron {
 impl SpaceIron {
     /* implement all Put requests */
     fn put(&self, request: &mut Request) -> IronResult<Response> {
+        /* e.g. path: /v1/status/TOKEN/1 */
+
         match request.url.path()[1] {
             "status" => self.write_status(request),
             _ => Ok(Response::with((status::NotFound, format!("Not found {}", request.url.path()[0])))),
@@ -121,7 +124,9 @@ impl SpaceIron {
     }
 
     fn write_status(&self, request: &mut Request) -> IronResult<Response> {
-        /* Check token */
+        /* Check token
+         * e.g. path: /v1/status/TOKEN/0
+         */
         if request.url.path()[2] != self.token {
             Ok(Response::with((status::Forbidden, "Wrong Token")))
         } else {
@@ -147,6 +152,9 @@ struct SpaceIron {
 
 impl Handler for SpaceIron {
     fn handle(&self, request: & mut Request) -> IronResult<Response> {
+        /* e.g. path: /v1/status.json
+         * only support v1
+         */
         match request.url.path()[0] {
             "v1" => {
                 match request.method {
