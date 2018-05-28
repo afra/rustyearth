@@ -36,7 +36,7 @@ impl SpaceStatus {
 impl SpaceIron {
     /* implement all Get requests */
     fn get(&self, request: &mut Request) -> IronResult<Response> {
-        match request.url.path()[0] {
+        match request.url.path()[1] {
             "" => self.index(request),
             "status.json" => {
                 let status = &self.space.lock().unwrap().status;
@@ -114,7 +114,7 @@ impl SpaceIron {
 impl SpaceIron {
     /* implement all Put requests */
     fn put(&self, request: &mut Request) -> IronResult<Response> {
-        match request.url.path()[0] {
+        match request.url.path()[1] {
             "status" => self.write_status(request),
             _ => Ok(Response::with((status::NotFound, format!("Not found {}", request.url.path()[0])))),
         }
@@ -122,10 +122,10 @@ impl SpaceIron {
 
     fn write_status(&self, request: &mut Request) -> IronResult<Response> {
         /* Check token */
-        if request.url.path()[1] != self.token {
+        if request.url.path()[2] != self.token {
             Ok(Response::with((status::Forbidden, "Wrong Token")))
         } else {
-            match request.url.path()[2] {
+            match request.url.path()[3] {
                 "0" => {
                     self.space.lock().unwrap().status.close();
                     Ok(Response::with((status::Ok, "closed")))
@@ -147,10 +147,15 @@ struct SpaceIron {
 
 impl Handler for SpaceIron {
     fn handle(&self, request: & mut Request) -> IronResult<Response> {
-        match request.method {
-            Method::Get => self.get(request),
-            Method::Put => self.put(request),
-            _ => Ok(Response::with((status::NotFound, "Not found"))),
+        match request.url.path()[0] {
+            "v1" => {
+                match request.method {
+                    Method::Get => self.get(request),
+                    Method::Put => self.put(request),
+                    _ => Ok(Response::with((status::NotFound, "Not found"))),
+                }
+            },
+            _ => Ok(Response::with((status::NotFound, format!("Not found {}", request.url)))),
         }
     }
 }
