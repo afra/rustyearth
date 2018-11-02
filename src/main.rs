@@ -56,8 +56,10 @@ impl SpaceIron {
     }
 
     fn index(&self, _: &mut Request) -> IronResult<Response> {
-        /* TODO: add a readme here and links to valid endpoints */
-        Ok(Response::with((status::Ok, "Index")))
+        let mut resp = Response::with((status::Ok, File::open("assets/index.html").unwrap()));
+        resp.headers.set(CacheControl(vec![CacheDirective::MaxAge(60u32)]));
+        resp.headers.set(ContentType("text/html; charset=utf-8".parse().unwrap()));
+        Ok(resp)
     }
 
     fn status_json(&self, status: &SpaceStatus) -> IronResult<Response> {
@@ -163,6 +165,7 @@ impl Handler for SpaceIron {
                     _ => Ok(Response::with((status::NotFound, "Not found"))),
                 }
             },
+            "" => self.index(request),
             _ => Ok(Response::with((status::NotFound, format!("Not found {}", request.url)))),
         }
     }
