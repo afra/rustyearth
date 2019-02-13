@@ -2,9 +2,9 @@
 name = "rustyearth"
 version = "0.1.0"
 authors = ["Alexander Couzens <lynxis@fe80.eu>"]
+edition = "2018"
 
 [dependencies]
 time = "0.1"
+iron = "0.6"
 
-[dependencies.iron]
-version = "*"
