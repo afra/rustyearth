@@ -1,13 +1,12 @@
-extern crate iron;
-extern crate time;
+//! AfRA website icon manipulator
 
-use std::sync::{Mutex, Arc};
 use std::fs::File;
+use std::sync::{Arc, Mutex};
 
+use iron::headers::{CacheControl, CacheDirective, ContentType, HttpDate, LastModified};
 use iron::method::Method;
 use iron::middleware::Handler;
 use iron::prelude::*;
-use iron::headers::{CacheControl, CacheDirective, ContentType, HttpDate, LastModified};
 use iron::status;
 
 pub struct SpaceStatus {
@@ -36,29 +35,34 @@ impl SpaceStatus {
 impl SpaceIron {
     /* implement all Get requests */
     fn get(&self, request: &mut Request) -> IronResult<Response> {
-         /* e.g. path: /v1/status.json */
+        /* e.g. path: /v1/status.json */
         match request.url.path()[1] {
             "" => self.index(request),
             "status.json" => {
                 let status = &self.space.lock().unwrap().status;
                 self.status_json(status)
-            },
+            }
             "status" => {
                 let status = self.space.lock().unwrap().status.status;
                 Ok(Response::with((status::Ok, format!("Status {}", status))))
-            },
+            }
             "status.png" => {
                 let status = &self.space.lock().unwrap().status;
                 self.status_png(status)
-            },
-            _ => Ok(Response::with((status::NotFound, format!("Not found {}", request.url))))
+            }
+            _ => Ok(Response::with((
+                status::NotFound,
+                format!("Not found {}", request.url),
+            ))),
         }
     }
 
     fn index(&self, _: &mut Request) -> IronResult<Response> {
         let mut resp = Response::with((status::Ok, File::open("assets/index.html").unwrap()));
-        resp.headers.set(CacheControl(vec![CacheDirective::MaxAge(60u32)]));
-        resp.headers.set(ContentType("text/html; charset=utf-8".parse().unwrap()));
+        resp.headers
+            .set(CacheControl(vec![CacheDirective::MaxAge(60u32)]));
+        resp.headers
+            .set(ContentType("text/html; charset=utf-8".parse().unwrap()));
         Ok(resp)
     }
 
@@ -94,7 +98,8 @@ impl SpaceIron {
         };
 
         let mut resp = Response::with((status::Ok, result));
-        resp.headers.set(CacheControl(vec![CacheDirective::MaxAge(60u32)]));
+        resp.headers
+            .set(CacheControl(vec![CacheDirective::MaxAge(60u32)]));
         resp.headers.set(LastModified(status.modified));
         resp.headers.set(ContentType("text/json".parse().unwrap()));
         Ok(resp)
@@ -105,9 +110,10 @@ impl SpaceIron {
             true => &status.open,
             false => &status.close,
         };
-        
+
         let mut resp = Response::with((status::Ok, File::open(file).unwrap()));
-        resp.headers.set(CacheControl(vec![CacheDirective::MaxAge(60u32)]));
+        resp.headers
+            .set(CacheControl(vec![CacheDirective::MaxAge(60u32)]));
         resp.headers.set(LastModified(status.modified));
         resp.headers.set(ContentType("image/png".parse().unwrap()));
         Ok(resp)
@@ -121,7 +127,10 @@ impl SpaceIron {
 
         match request.url.path()[1] {
             "status" => self.write_status(request),
-            _ => Ok(Response::with((status::NotFound, format!("Not found {}", request.url.path()[0])))),
+            _ => Ok(Response::with((
+                status::NotFound,
+                format!("Not found {}", request.url.path()[0]),
+            ))),
         }
     }
 
@@ -136,11 +145,11 @@ impl SpaceIron {
                 "0" => {
                     self.space.lock().unwrap().status.close();
                     Ok(Response::with((status::Ok, "closed")))
-                },
+                }
                 "1" => {
                     self.space.lock().unwrap().status.open();
                     Ok(Response::with((status::Ok, "open")))
-                },
+                }
                 _ => Ok(Response::with((status::NotFound, "Not Found"))),
             }
         }
@@ -153,20 +162,21 @@ struct SpaceIron {
 }
 
 impl Handler for SpaceIron {
-    fn handle(&self, request: & mut Request) -> IronResult<Response> {
+    fn handle(&self, request: &mut Request) -> IronResult<Response> {
         /* e.g. path: /v1/status.json
          * only support v1
          */
         match request.url.path()[0] {
-            "v1" => {
-                match request.method {
-                    Method::Get => self.get(request),
-                    Method::Put => self.put(request),
-                    _ => Ok(Response::with((status::NotFound, "Not found"))),
-                }
+            "v1" => match request.method {
+                Method::Get => self.get(request),
+                Method::Put => self.put(request),
+                _ => Ok(Response::with((status::NotFound, "Not found"))),
             },
             "" => self.index(request),
-            _ => Ok(Response::with((status::NotFound, format!("Not found {}", request.url)))),
+            _ => Ok(Response::with((
+                status::NotFound,
+                format!("Not found {}", request.url),
+            ))),
         }
     }
 }
@@ -178,7 +188,9 @@ fn main() {
             open: String::from("assets/open.png"),
             close: String::from("assets/close.png"),
             // founding date of AfRA
-            modified: HttpDate(time::strptime("29.07.2013 18:03:00 GMT", "%d.%m.%Y %H:%M:%S %Z").unwrap()),
+            modified: HttpDate(
+                time::strptime("29.07.2013 18:03:00 GMT", "%d.%m.%Y %H:%M:%S %Z").unwrap(),
+            ),
         },
     };
     let space_mutexed = std::sync::Arc::new(std::sync::Mutex::new(space));
