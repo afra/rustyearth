@@ -169,6 +169,7 @@ impl Handler for SpaceIron {
         match request.url.path()[0] {
             "v1" => match request.method {
                 Method::Get => self.get(request),
+                Method::Head => self.get(request),
                 Method::Put => self.put(request),
                 _ => Ok(Response::with((status::NotFound, "Not found"))),
             },
